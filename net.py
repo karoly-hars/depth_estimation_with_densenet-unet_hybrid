@@ -145,7 +145,6 @@ class DenseUnetHyb(nn.Module):
         
         
         # Final layers
-        self.drop = nn.Dropout(0.8, False)
         self.conv3 = nn.Conv2d(52, 1, kernel_size=3, stride=1, padding=1, bias=True)
         self.relu = nn.ReLU(inplace=True)
         
@@ -211,7 +210,6 @@ class DenseUnetHyb(nn.Module):
         x = self.con_conv4(x, x01)
         
         # final layers
-        x = self.drop(x)
         x = self.conv3(x)
         x = self.relu(x)
         
