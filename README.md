@@ -4,12 +4,12 @@ Hybrid DenseNet-based CNN for Single Image Depth Estimation
 This repository contains an updated version of the CNN from my repository [DE_resnet_unet_hyb](https://github.com/karoly-hars/DE_resnet_unet_hyb). The ResNet backbone has been replaced with a DenseNet169.
 
 ### Requirements
-- python 3.5 or 3.6
-- pytorch
-- torchvision
-- opencv
-- matplotlib
-- numpy
+The code was tested with:
+- python 3.5 and 3.6
+- pytorch (and torchvision) 0.4 to 1.0.0
+- opencv-python 3.4.3
+- matplotlib 2.2.3
+- numpy 1.15.4
 
 ### Guide
 - Predicting the depth of an arbitrary image:
