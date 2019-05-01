@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.utils.model_zoo as model_zoo
 from collections import OrderedDict
 import os
 
@@ -44,30 +43,30 @@ class _Transition(nn.Sequential):
         self.add_module('pool', nn.AvgPool2d(kernel_size=2, stride=2))
 
 
-
-class UpProj(nn.Sequential):
-
+class UpProjection(nn.Module):
     def __init__(self, num_input_features, num_output_features):
-        super(UpProj, self).__init__()
+        super(UpProjection, self).__init__()
         
-        self.conv1 = nn.Conv2d(num_input_features, num_output_features, kernel_size=5, stride=1, padding=2, bias=False)
+        self.conv1 = nn.Conv2d(num_input_features, num_output_features,
+                               kernel_size=5, stride=1, padding=2, bias=False)
         self.bn1 = nn.BatchNorm2d(num_output_features)
         self.relu = nn.ReLU(inplace=True)
-        self.conv1_2 = nn.Conv2d(num_output_features, num_output_features, kernel_size=3, stride=1, padding=1, bias=False)
+        self.conv1_2 = nn.Conv2d(num_output_features, num_output_features,
+                                 kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1_2 = nn.BatchNorm2d(num_output_features)
 
-        self.conv2 = nn.Conv2d(num_input_features, num_output_features, kernel_size=5, stride=1, padding=2, bias=False)
+        self.conv2 = nn.Conv2d(num_input_features, num_output_features,
+                               kernel_size=5, stride=1, padding=2, bias=False)
         self.bn2 = nn.BatchNorm2d(num_output_features)
 
     def forward(self, x, new_size):
-        x = F.upsample(x, size=new_size, mode='bilinear', align_corners=False)
+        x = F.interpolate(x, size=new_size, mode='bilinear', align_corners=False)
         branch1 = self.relu(self.bn1(self.conv1(x)))
         branch1 = self.bn1_2(self.conv1_2(branch1))
         
         branch2 = self.bn2(self.conv2(x))
 
         out = self.relu(branch1 + branch2)
-
         return out
 
 
@@ -82,11 +81,10 @@ class ConConv(nn.Module):
         return x
 
 
-
-class DenseUnetHyb(nn.Module):
+class DensenetUnetHybrid(nn.Module):
  
-    """Densenet-BC model class, based on
-    `"Densely Connected Convolutional Networks" <https://arxiv.org/pdf/1608.06993.pdf>`_
+    """Mostly based on the DenseNet implementation of PyTorch at
+    https://github.com/pytorch/vision/blob/master/torchvision/models/densenet.py
 
     Args:
         growth_rate (int) - how many filters to add each layer (`k` in paper)
@@ -95,13 +93,12 @@ class DenseUnetHyb(nn.Module):
         bn_size (int) - multiplicative factor for number of bottle neck layers
           (i.e. bn_size * k features in the bottleneck layer)
         drop_rate (float) - dropout rate after each dense layer
-        num_classes (int) - number of classification classes
     """
 
     def __init__(self, growth_rate=32, block_config=(6, 12, 24, 16),
                  num_init_features=64, bn_size=4, drop_rate=0):
 
-        super(DenseUnetHyb, self).__init__()
+        super(DensenetUnetHybrid, self).__init__()
 
         # First convolution
         self.features = nn.Sequential(OrderedDict([
@@ -125,31 +122,28 @@ class DenseUnetHyb(nn.Module):
 
         # Final batch norm
         self.features.add_module('norm5', nn.BatchNorm2d(num_features))
-        
-        
+
         # Conv2
         self.conv2 = nn.Conv2d(1664, 832, 1, bias=True)
         self.bn2 = nn.BatchNorm2d(832)
         
         # Up projections
-        self.up1 = UpProj(832, 416)
-        self.up2 = UpProj(416, 208)
-        self.up3 = UpProj(208, 104)
-        self.up4 = UpProj(104, 52)
+        self.up1 = UpProjection(832, 416)
+        self.up2 = UpProjection(416, 208)
+        self.up3 = UpProjection(208, 104)
+        self.up4 = UpProjection(104, 52)
                 
         ''' padding + concat for unet stuff '''
         self.con_conv1 = ConConv(640, 416, 416)
         self.con_conv2 = ConConv(256, 208, 208) 
         self.con_conv3 = ConConv(128, 104, 104) 
         self.con_conv4 = ConConv(64, 52, 52) 
-        
-        
+
         # Final layers
         self.conv3 = nn.Conv2d(52, 1, kernel_size=3, stride=1, padding=1, bias=True)
         self.relu = nn.ReLU(inplace=True)
-        
-        
-        # Official init from torch repo.
+
+        # Init from torch repo.
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight)
@@ -159,7 +153,6 @@ class DenseUnetHyb(nn.Module):
             elif isinstance(m, nn.Linear):
                 nn.init.constant_(m.bias, 0)
 
-        
     def forward(self, x):
         
         x01 = self.features.conv0(x)
@@ -216,22 +209,18 @@ class DenseUnetHyb(nn.Module):
         return x
 
 
+def get_model(load_path='DE_densenet.model', use_gpu=True):
+    model = DensenetUnetHybrid(num_init_features=64, growth_rate=32,
+                               block_config=(6, 12, 32, 32), drop_rate=0)
 
-
-model_urls = {'densenet169': 'https://download.pytorch.org/models/densenet169-b2777c0a.pth'}
-
-def densenet_unet_hyb(load_path='DE_densenet.model', **kwargs):
-
-    model = DenseUnetHyb(num_init_features=64, growth_rate=32,
-                         block_config=(6, 12, 32, 32), drop_rate=0, **kwargs)
-    
-    
     # download the weights in case they are not present
     if not os.path.exists(load_path):
         print('Downloading model weights...')
         os.system("wget https://www.dropbox.com/s/jf4elm14ts1da1n/DE_densenet.model")
         print('Done.')
-        
-    model.load_state_dict(torch.load(load_path))
-
+    if use_gpu:
+        model.load_state_dict(torch.load(load_path))
+        model = model.cuda()
+    else:
+        model.load_state_dict(torch.load(load_path, map_location='cpu'))
     return model

@@ -1,11 +1,11 @@
 import torch
+import torch.nn.functional as F
 from torch.autograd import Variable
 from utils import load_img, show_img_pred
 import argparse
 import net
 
 
-    
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('img_path', type=str,  help='path to the RGB image input')
@@ -17,10 +17,8 @@ def main():
     
     # loading model
     print('\nLoading model...')
-    model = net.densenet_unet_hyb()
-    if use_gpu:
-        model = model.cuda()
-            
+    model = net.get_model(use_gpu=use_gpu)
+
     # setting model to evalutation mode
     model.eval()
         
@@ -37,18 +35,13 @@ def main():
     # forward
     output = model(img)
     # upsample
-    new_size = (480, 640)        
-    resizer = torch.nn.Upsample(size=new_size, mode='bilinear', align_corners=False)
-    output = resizer(output) 
+    output = F.interpolate(output, size=(480, 640), mode='bilinear', align_corners=False)
     
-    # transforming and ploting the results
+    # transforming and plotting the results
     output = output.cpu()[0].data.numpy()
     img = img.cpu()[0].data.numpy()
     show_img_pred(img, output)
-    
-    
+
 
 if __name__ == "__main__":
     main()
-
-
