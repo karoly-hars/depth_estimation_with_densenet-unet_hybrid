@@ -1,6 +1,5 @@
 import torch
 import torch.nn.functional as F
-from torch.autograd import Variable
 from utils import load_img, show_img_pred
 import argparse
 import net
@@ -28,9 +27,7 @@ def main():
     
     # running model on the image
     if use_gpu:
-        img = Variable(img.cuda())
-    else:
-        img = Variable(img)
+        img = img.cuda()
         
     # forward
     output = model(img)

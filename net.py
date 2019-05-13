@@ -82,7 +82,6 @@ class ConConv(nn.Module):
 
 
 class DensenetUnetHybrid(nn.Module):
- 
     """Mostly based on the DenseNet implementation of PyTorch at
     https://github.com/pytorch/vision/blob/master/torchvision/models/densenet.py
 
@@ -97,7 +96,6 @@ class DensenetUnetHybrid(nn.Module):
 
     def __init__(self, growth_rate=32, block_config=(6, 12, 24, 16),
                  num_init_features=64, bn_size=4, drop_rate=0):
-
         super(DensenetUnetHybrid, self).__init__()
 
         # First convolution
@@ -154,7 +152,6 @@ class DensenetUnetHybrid(nn.Module):
                 nn.init.constant_(m.bias, 0)
 
     def forward(self, x):
-        
         x01 = self.features.conv0(x)
         x = self.features.norm0(x01)
         x = self.features.relu0(x)
