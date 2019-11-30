@@ -5,11 +5,7 @@ import argparse
 import net
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('img_path', type=str,  help='path to the RGB image input')
-    args = parser.parse_args()
-    
+def predict_img(img_path):  
     # switching to GPU if possible
     use_gpu = torch.cuda.is_available()
     print('\nusing GPU:', use_gpu)    
@@ -23,7 +19,7 @@ def main():
         
     # reading image
     print('\nLoading and running image...')
-    img = load_img(args.img_path)
+    img = load_img(img_path)
     
     # running model on the image
     if use_gpu:
@@ -40,5 +36,12 @@ def main():
     show_img_pred(img, output)
 
 
+def get_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('img_path', type=str,  help='path to the RGB image input')
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    main()
+    args = get_arguments()
+    predict_img(args.img_path)
