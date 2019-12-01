@@ -207,8 +207,7 @@ class DensenetUnetHybrid(nn.Module):
 
 
 def get_model(load_path="DE_densenet.model", use_gpu=True):
-    model = DensenetUnetHybrid(num_init_features=64, growth_rate=32,
-                               block_config=(6, 12, 32, 32), drop_rate=0)
+    model = DensenetUnetHybrid(num_init_features=64, growth_rate=32, block_config=(6, 12, 32, 32), drop_rate=0)
 
     # download the weights in case they are not present
     if not os.path.exists(load_path):
