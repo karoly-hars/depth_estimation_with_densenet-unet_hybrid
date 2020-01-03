@@ -13,8 +13,8 @@ The code was tested with:
 
 ### Guide
 - Predicting the depth of an arbitrary image:
-```sh
-python3 predict_img.py <path_to_image>
+```
+python3 predict_img.py -i <path_to_image>
 ```
 
 ### Evalutation
