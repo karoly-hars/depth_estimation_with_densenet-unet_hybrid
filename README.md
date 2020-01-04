@@ -6,7 +6,7 @@ This repository contains an updated version of the CNN from my repository [DE_re
 ### Requirements
 The code was tested with:
 - python 3.5 and 3.6
-- pytorch (and torchvision) 1.0.0
+- pytorch (and torchvision) 1.3.0
 - opencv-python 3.4.3
 - matplotlib 2.2.3
 - numpy 1.15.4

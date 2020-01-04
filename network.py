@@ -206,7 +206,7 @@ class DensenetUnetHybrid(nn.Module):
         return x
 
     @classmethod
-    def load_pretrained(cls, load_path='DE_densenet.model', use_gpu=False):
+    def load_pretrained(cls, device, load_path='DE_densenet.model'):
         model = cls(num_init_features=64, growth_rate=32, block_config=(6, 12, 32, 32), drop_rate=0)
 
         # download the weight in case they are not present
@@ -214,9 +214,7 @@ class DensenetUnetHybrid(nn.Module):
             print('Downloading model weights...')
             os.system('wget https://www.dropbox.com/s/jf4elm14ts1da1n/DE_densenet.model')
 
-        if use_gpu:
-            model.load_state_dict(torch.load(load_path))
-            model = model.cuda()
-        else:
-            model.load_state_dict(torch.load(load_path, map_location='cpu'))
+        model = model.to(device)
+        model.load_state_dict(torch.load(load_path, map_location=device))
+
         return model
