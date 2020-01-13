@@ -46,7 +46,7 @@ class _Transition(nn.Sequential):
 class UpProjection(nn.Module):
     def __init__(self, num_input_features, num_output_features):
         super(UpProjection, self).__init__()
-        
+
         self.conv1 = nn.Conv2d(num_input_features, num_output_features,
                                kernel_size=5, stride=1, padding=2, bias=False)
         self.bn1 = nn.BatchNorm2d(num_output_features)
@@ -63,7 +63,7 @@ class UpProjection(nn.Module):
         x = F.interpolate(x, size=new_size, mode='bilinear', align_corners=False)
         branch1 = self.relu(self.bn1(self.conv1(x)))
         branch1 = self.bn1_2(self.conv1_2(branch1))
-        
+
         branch2 = self.bn2(self.conv2(x))
 
         out = self.relu(branch1 + branch2)
@@ -72,9 +72,9 @@ class UpProjection(nn.Module):
 
 class ConConv(nn.Module):
     def __init__(self, inplanes_x1, inplanes_x2, planes):
-        super(ConConv, self).__init__()        
+        super(ConConv, self).__init__()
         self.conv = nn.Conv2d(inplanes_x1 + inplanes_x2, planes, kernel_size=1, bias=True)
-    
+
     def forward(self, x1, x2):
         x = torch.cat([x2, x1], dim=1)
         x = self.conv(x)
@@ -124,18 +124,18 @@ class DensenetUnetHybrid(nn.Module):
         # Conv2
         self.conv2 = nn.Conv2d(1664, 832, 1, bias=True)
         self.bn2 = nn.BatchNorm2d(832)
-        
+
         # Up projections
         self.up1 = UpProjection(832, 416)
         self.up2 = UpProjection(416, 208)
         self.up3 = UpProjection(208, 104)
         self.up4 = UpProjection(104, 52)
-                
+
         # padding + concat for unet stuff
         self.con_conv1 = ConConv(640, 416, 416)
-        self.con_conv2 = ConConv(256, 208, 208) 
-        self.con_conv3 = ConConv(128, 104, 104) 
-        self.con_conv4 = ConConv(64, 52, 52) 
+        self.con_conv2 = ConConv(256, 208, 208)
+        self.con_conv3 = ConConv(128, 104, 104)
+        self.con_conv4 = ConConv(64, 52, 52)
 
         # Final layers
         self.conv3 = nn.Conv2d(52, 1, kernel_size=3, stride=1, padding=1, bias=True)
@@ -155,21 +155,21 @@ class DensenetUnetHybrid(nn.Module):
         x01 = self.features.conv0(x)
         x = self.features.norm0(x01)
         x = self.features.relu0(x)
-    
+
         # pool1, block1
         x = self.features.pool0(x)
         x = self.features.denseblock1(x)
         x = self.features.transition1.norm(x)
         x = self.features.transition1.relu(x)
         block1 = self.features.transition1.conv(x)
-        
+
         # pool2, block2
         x = self.features.transition1.pool(block1)
         x = self.features.denseblock2(x)
         x = self.features.transition2.norm(x)
         x = self.features.transition2.relu(x)
         block2 = self.features.transition2.conv(x)
-        
+
         # poo3, block3
         x = self.features.transition2.pool(block2)
         x = self.features.denseblock3(x)
@@ -181,28 +181,28 @@ class DensenetUnetHybrid(nn.Module):
         x = self.features.transition3.pool(block3)
         x = self.features.denseblock4(x)
         block4 = self.features.norm5(x)
-        
+
         # conv2
         x = self.conv2(block4)
         x = self.bn2(x)
-        
+
         # up project part
         x = self.up1(x, [block3.size(2), block3.size(3)])
         x = self.con_conv1(x, block3)
-        
+
         x = self.up2(x, [block2.size(2), block2.size(3)])
         x = self.con_conv2(x, block2)
-        
+
         x = self.up3(x, [block1.size(2), block1.size(3)])
         x = self.con_conv3(x, block1)
-        
+
         x = self.up4(x, [x01.size(2), x01.size(3)])
         x = self.con_conv4(x, x01)
-        
+
         # final layers
         x = self.conv3(x)
         x = self.relu(x)
-        
+
         return x
 
     @classmethod
