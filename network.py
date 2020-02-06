@@ -209,7 +209,7 @@ class DensenetUnetHybrid(nn.Module):
     def load_pretrained(cls, device, load_path='DE_densenet.model'):
         model = cls(num_init_features=64, growth_rate=32, block_config=(6, 12, 32, 32), drop_rate=0)
 
-        # download the weight in case they are not present
+        # download the weights if they are not present
         if not os.path.exists(load_path):
             print('Downloading model weights...')
             os.system('wget https://www.dropbox.com/s/jf4elm14ts1da1n/DE_densenet.model')
