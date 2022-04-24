@@ -14,7 +14,7 @@ The code was tested with:
 ### Guide
 - Predicting the depth of an arbitrary image:
 ```
-python3 predict_img.py -i <path_to_image>
+python3 predict_img.py -i <path_to_image> -o <path_to_output>
 ```
 
 ### Evalutation

@@ -5,8 +5,8 @@ from network import DensenetUnetHybrid
 import image_utils
 
 
-def predict_img(img_path):
-    """Inference a single image."""
+def predict_img(img_path, output_path):
+    """Inference a single image, save result."""
     # switch to CUDA device
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     print('Use GPU: {}'.format(str(device) != 'cpu'))
@@ -27,18 +27,19 @@ def predict_img(img_path):
     print('Running the image through the network...')
     output = model(inp)
 
-    # transform and plot the results
+    # transform and save the results
     output = output.cpu()[0].data.numpy()
-    image_utils.show_img_and_pred(img, output)
+    image_utils.save_img_and_pred(img, output, output_path)
 
 
 def get_arguments():
     """Get command line arguments."""
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--img_path', required=True, type=str, help='Path to the input image.')
+    parser.add_argument('-o', '--output_path', required=True, type=str, help='Path to the output image.')
     return parser.parse_args()
 
 
 if __name__ == '__main__':
     args = get_arguments()
-    predict_img(args.img_path)
+    predict_img(args.img_path, args.output_path)
