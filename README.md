@@ -25,3 +25,9 @@ python3 predict_img.py -i <path_to_image> -o <path_to_output>
 | 0.129 | 0.588 | 0.056 |0.833 |0.962 |0.990 |
 
 
+### About the training code
+Lots of people reached out to me about the training code. Sadly, I stopped working on this project a long time ago.
+I don't have access to the same data and codebase anymore, so can't share the training code. However, the work is based on this paper:
+https://link.springer.com/chapter/10.1007%2F978-3-319-98678-4_38, which describes the training process in detail,
+and the depth dataset is available for researchers and students. The only difference compared to the article is the network structure, but it can be
+copied from the `network.py` module. If anyone is willing to invest time into writing the training code for themselves, I am happy to help.
